@@ -1,19 +1,15 @@
-pipeline{
-    
-    agent any
-    stages{
-        stage('clone the repo')
-        {
-            steps{
-                git branch: 'main', url: 'https://github.com/Sonal0409/myansible.git'
-            }
-        }
-        
-        stage('Execute playbook')
-        {
-            steps{
-                ansible-playbook credentialsId: 'ansible_host_credentials', disableHostKeyChecking: true, installation: 'myansible', inventory: 'dev.inv', playbook: 'playbook1.yml'
-            }
-        }
-    }
-}
+---
+- hosts: webservers
+  become: true
+  become_user: root
+  tasks:
+  - name: install httpd
+    yum: name=httpd state=present
+  - name: start httpd
+    service: name=httpd state=started
+  - name: deploy html file
+    copy: src=/etc/ansible/index.html dest=/var/www/html
+    notify: restart httpd
+  handlers:
+  - name: restart httpd
+    service: name=httpd state=restarted
